@@ -12,20 +12,25 @@
       <h1>GradePath</h1>
       <p class="subtitle">Upload your syllabus. Track your grade. See what you need on the final.</p>
     </div>
-    <div id="userBadge" class="user-badge hidden"></div>
+
+    <div class="topbar-actions">
+      <button id="savedClassesBtn" class="secondary hidden" type="button">Saved classes</button>
+      <div id="userBadge" class="user-badge hidden"></div>
+      <button id="logoutBtn" class="secondary hidden" type="button">Log out</button>
+    </div>
   </header>
 
   <main class="container">
-    <!-- STAGE 1: AUTH -->
+    <!-- STAGE 1 -->
     <section id="stage1" class="card stage">
       <div class="card-header">
         <h2>Welcome</h2>
-        <p>Create an account or log in to start.</p>
+        <p>Create an account or log in to get started.</p>
       </div>
 
       <div class="tabs">
-        <button class="tab active" data-tab="signup">Sign up</button>
-        <button class="tab" data-tab="login">Log in</button>
+        <button class="tab active" data-tab="signup" type="button">Sign up</button>
+        <button class="tab" data-tab="login" type="button">Log in</button>
       </div>
 
       <div id="signupPanel" class="tab-panel active">
@@ -35,27 +40,26 @@
         </div>
         <input id="email" type="email" placeholder="Email" />
         <input id="password" type="password" placeholder="Password" />
-        <button id="signupBtn">Create account</button>
+        <button id="signupBtn" type="button">Create account</button>
       </div>
 
       <div id="loginPanel" class="tab-panel">
         <input id="loginEmail" type="email" placeholder="Email" />
         <input id="loginPassword" type="password" placeholder="Password" />
-        <button id="loginBtn">Log in</button>
+        <button id="loginBtn" type="button">Log in</button>
       </div>
 
       <div class="auth-divider">or</div>
       <button id="googleLoginBtn" class="secondary" type="button">Continue with Google</button>
 
       <p id="authStatus" class="status"></p>
-      <button id="logoutBtn" class="secondary hidden" type="button">Log out</button>
     </section>
 
-    <!-- STAGE 2: UPLOAD -->
+    <!-- STAGE 2 -->
     <section id="stage2" class="card stage hidden">
       <div class="card-header">
-        <h2>Upload your syllabus</h2>
-        <p>Start by uploading a syllabus image or PDF.</p>
+        <h2>Step 1: Upload your syllabus</h2>
+        <p>Add a class, then upload a syllabus image or PDF.</p>
       </div>
 
       <input id="courseName" type="text" placeholder="Course name (optional if AI finds it)" />
@@ -70,10 +74,10 @@
       <p id="uploadStatus" class="status"></p>
     </section>
 
-    <!-- STAGE 3: REVIEW WEIGHTS -->
+    <!-- STAGE 3 -->
     <section id="stage3" class="card stage hidden">
       <div class="card-header">
-        <h2>Review the grading weights</h2>
+        <h2>Step 2: Review the grading weights</h2>
         <p>Edit anything the AI got wrong, then continue.</p>
       </div>
 
@@ -87,6 +91,7 @@
       <div id="categories"></div>
 
       <div class="button-row">
+        <button id="backToUploadBtn" class="secondary" type="button">Back</button>
         <button id="addCategoryBtn" class="secondary" type="button">Add category</button>
         <button id="continueToGoalsBtn" type="button">Continue</button>
       </div>
@@ -94,11 +99,11 @@
       <p id="weightWarning" class="status"></p>
     </section>
 
-    <!-- STAGE 4: SCORES + GOAL -->
+    <!-- STAGE 4 -->
     <section id="stage4" class="card stage hidden">
       <div class="card-header">
-        <h2>Enter your scores and your goal</h2>
-        <p>Fill in your current percentages, choose your target, then calculate.</p>
+        <h2>Step 3: Enter scores and choose your goal</h2>
+        <p>Fill in current category percentages, then choose the grade you want.</p>
       </div>
 
       <input id="finalCategoryName" type="text" value="Final Exam" placeholder="Final category name" />
@@ -111,10 +116,14 @@
       </div>
 
       <input id="targetGrade" type="number" placeholder="Custom target overall %" />
-      <button id="calcBtn" type="button">Calculate what you need</button>
+
+      <div class="button-row">
+        <button id="backToWeightsBtn" class="secondary" type="button">Back</button>
+        <button id="calcBtn" type="button">Calculate what you need</button>
+      </div>
     </section>
 
-    <!-- STAGE 5: RESULT -->
+    <!-- STAGE 5 -->
     <section id="stage5" class="card stage hidden">
       <div class="card-header">
         <h2>Your result</h2>
@@ -125,16 +134,25 @@
 
       <div class="button-row">
         <button id="backToGoalsBtn" class="secondary" type="button">Back</button>
+        <button id="saveClassBtn" class="secondary" type="button">Save class</button>
         <button id="startAnotherBtn" type="button">Start another class</button>
       </div>
+
+      <p id="saveStatus" class="status"></p>
     </section>
 
-    <!-- SAVED CLASSES -->
-    <section id="savedClassesCard" class="card hidden">
+    <!-- SAVED CLASSES VIEW -->
+    <section id="savedClassesCard" class="card stage hidden">
       <div class="card-header">
         <h2>Saved classes</h2>
+        <p>Come back to previous classes here.</p>
       </div>
+
       <div id="savedClasses" class="saved-list"></div>
+
+      <div class="button-row">
+        <button id="backFromSavedBtn" class="secondary" type="button">Back</button>
+      </div>
     </section>
   </main>
 
