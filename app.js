@@ -30,12 +30,44 @@ const uploadStatus = document.getElementById("uploadStatus");
 const results = document.getElementById("results");
 const weightWarning = document.getElementById("weightWarning");
 const savedClasses = document.getElementById("savedClasses");
+const savedClassesCard = document.getElementById("savedClassesCard");
 const userBadge = document.getElementById("userBadge");
 const logoutBtn = document.getElementById("logoutBtn");
-const appContent = document.getElementById("appContent");
+
+const stageEls = {
+  1: document.getElementById("stage1"),
+  2: document.getElementById("stage2"),
+  3: document.getElementById("stage3"),
+  4: document.getElementById("stage4"),
+  5: document.getElementById("stage5")
+};
 
 let currentUser = null;
+let currentStage = 1;
 const googleProvider = new GoogleAuthProvider();
+
+function showStage(stageNumber) {
+  Object.values(stageEls).forEach((el) => el.classList.add("hidden"));
+  stageEls[stageNumber].classList.remove("hidden");
+  currentStage = stageNumber;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function resetClassFlow() {
+  document.getElementById("courseName").value = "";
+  document.getElementById("professorName").value = "";
+  document.getElementById("syllabusFile").value = "";
+  document.getElementById("targetGrade").value = "";
+  document.getElementById("finalCategoryName").value = "Final Exam";
+  uploadStatus.textContent = "";
+  results.innerHTML = "";
+  categoriesDiv.innerHTML = "";
+  addCategoryRow("Homework", 20, "");
+  addCategoryRow("Quizzes", 15, "");
+  addCategoryRow("Midterm", 25, "");
+  addCategoryRow("Final Exam", 40, "");
+  updateWeightWarning();
+}
 
 function addCategoryRow(name = "", weight = "", score = "") {
   const node = categoryTemplate.content.cloneNode(true);
@@ -136,25 +168,11 @@ document.getElementById("googleLoginBtn").addEventListener("click", async () => 
     );
 
     authStatus.textContent = "Logged in with Google.";
+    showStage(2);
   } catch (error) {
     console.error(error);
     authStatus.textContent = "Google login failed. Check Firebase settings.";
   }
-});
-
-document.getElementById("addCategoryBtn").addEventListener("click", () => {
-  addCategoryRow();
-});
-
-document.getElementById("mockParseBtn").addEventListener("click", () => {
-  categoriesDiv.innerHTML = "";
-  addCategoryRow("Homework", 20, "");
-  addCategoryRow("Quizzes", 15, "");
-  addCategoryRow("Midterm", 25, "");
-  addCategoryRow("Participation", 10, "");
-  addCategoryRow("Final Exam", 30, "");
-  updateWeightWarning();
-  uploadStatus.textContent = "Demo weights added.";
 });
 
 document.getElementById("signupBtn").addEventListener("click", async () => {
@@ -183,6 +201,7 @@ document.getElementById("signupBtn").addEventListener("click", async () => {
     );
 
     authStatus.textContent = "Account created.";
+    showStage(2);
   } catch (error) {
     if (error.code === "auth/email-already-in-use") {
       authStatus.textContent = "Account already exists. Try logging in.";
@@ -199,6 +218,7 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   try {
     await signInWithEmailAndPassword(auth, email, password);
     authStatus.textContent = "Logged in.";
+    showStage(2);
   } catch (error) {
     authStatus.textContent = error.message;
   }
@@ -206,6 +226,42 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
 
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
+});
+
+document.getElementById("mockParseBtn").addEventListener("click", () => {
+  categoriesDiv.innerHTML = "";
+  addCategoryRow("Homework", 20, "");
+  addCategoryRow("Quizzes", 15, "");
+  addCategoryRow("Midterm", 25, "");
+  addCategoryRow("Participation", 10, "");
+  addCategoryRow("Final Exam", 30, "");
+  updateWeightWarning();
+  uploadStatus.textContent = "Demo weights added.";
+  showStage(3);
+});
+
+document.getElementById("addCategoryBtn").addEventListener("click", () => {
+  addCategoryRow();
+});
+
+document.getElementById("continueToGoalsBtn").addEventListener("click", () => {
+  const totalWeight = getCategoryData().reduce((sum, item) => sum + item.weight, 0);
+
+  if (Math.abs(totalWeight - 100) > 0.01) {
+    weightWarning.textContent = `Your weights must add up to 100%. Right now they add up to ${totalWeight.toFixed(2)}%.`;
+    return;
+  }
+
+  showStage(4);
+});
+
+document.getElementById("backToGoalsBtn").addEventListener("click", () => {
+  showStage(4);
+});
+
+document.getElementById("startAnotherBtn").addEventListener("click", () => {
+  resetClassFlow();
+  showStage(2);
 });
 
 document.getElementById("uploadBtn").addEventListener("click", async () => {
@@ -281,6 +337,7 @@ document.getElementById("uploadBtn").addEventListener("click", async () => {
     });
 
     uploadStatus.textContent = "Syllabus uploaded and parsed by AI.";
+    showStage(3);
   } catch (error) {
     console.error(error);
     uploadStatus.textContent = error.message;
@@ -303,6 +360,7 @@ document.getElementById("calcBtn").addEventListener("click", async () => {
   const totalWeight = categories.reduce((sum, item) => sum + item.weight, 0);
   if (Math.abs(totalWeight - 100) > 0.01) {
     results.innerHTML = `<p>Your category weights must add up to 100%. Right now they add up to ${totalWeight.toFixed(2)}%.</p>`;
+    showStage(3);
     return;
   }
 
@@ -362,6 +420,8 @@ document.getElementById("calcBtn").addEventListener("click", async () => {
     });
     loadSavedClasses();
   }
+
+  showStage(5);
 });
 
 onAuthStateChanged(auth, async (user) => {
@@ -371,13 +431,16 @@ onAuthStateChanged(auth, async (user) => {
     userBadge.textContent = user.email;
     userBadge.classList.remove("hidden");
     logoutBtn.classList.remove("hidden");
-    appContent.classList.remove("hidden");
-    authStatus.textContent = "";
+    savedClassesCard.classList.remove("hidden");
+
+    if (currentStage === 1) {
+      showStage(2);
+    }
   } else {
     userBadge.classList.add("hidden");
     logoutBtn.classList.add("hidden");
-    appContent.classList.add("hidden");
-    authStatus.textContent = "";
+    savedClassesCard.classList.add("hidden");
+    showStage(1);
   }
 
   await loadSavedClasses();
@@ -385,8 +448,5 @@ onAuthStateChanged(auth, async (user) => {
 
 categoriesDiv.addEventListener("input", updateWeightWarning);
 
-addCategoryRow("Homework", 20, "");
-addCategoryRow("Quizzes", 15, "");
-addCategoryRow("Midterm", 25, "");
-addCategoryRow("Final Exam", 40, "");
-updateWeightWarning();
+resetClassFlow();
+showStage(1);
