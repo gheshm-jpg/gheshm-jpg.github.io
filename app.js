@@ -233,12 +233,22 @@ document.getElementById("calcBtn").addEventListener("click", async () => {
   const nonFinalCategories = categories.filter((item) => item !== finalCategory);
   const currentWeightedGrade = nonFinalCategories.reduce((sum, item) => sum + (item.weight * item.score) / 100, 0);
   const neededOnFinal = ((targetGrade - currentWeightedGrade) / finalCategory.weight) * 100;
+  const completedWeight = nonFinalCategories.reduce(
+  (sum, item) => sum + item.weight,
+  0
+);
 
-  let message = `
-    <p><strong>Current weighted grade so far:</strong> ${currentWeightedGrade.toFixed(2)}%</p>
-    <p><strong>Target overall grade:</strong> ${targetGrade.toFixed(2)}%</p>
-    <p><strong>Needed on ${finalCategory.name}:</strong> ${neededOnFinal.toFixed(2)}%</p>
-  `;
+const currentAverage =
+  completedWeight === 0
+    ? 0
+    : (currentWeightedGrade / completedWeight) * 100;
+
+let message = `
+  <p><strong>Current average (based on completed work):</strong> ${currentAverage.toFixed(2)}%</p>
+  <p><strong>Progress toward final course grade:</strong> ${currentWeightedGrade.toFixed(2)} / 100</p>
+  <p><strong>Target overall grade:</strong> ${targetGrade.toFixed(2)}%</p>
+  <p><strong>Needed on ${finalCategory.name}:</strong> ${neededOnFinal.toFixed(2)}%</p>
+`;
 
   if (neededOnFinal > 100) {
     message += `<p>This target is not reachable with the scores entered so far unless your grading setup changes or some categories improve.</p>`;
