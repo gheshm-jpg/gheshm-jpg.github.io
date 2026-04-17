@@ -10,12 +10,7 @@ import {
 import {
   doc,
   setDoc,
-  collection,
-  addDoc,
-  query,
-  where,
-  getDocs,
-  orderBy
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   ref,
@@ -28,11 +23,12 @@ const categoriesDiv = document.getElementById("categories");
 const authStatus = document.getElementById("authStatus");
 const uploadStatus = document.getElementById("uploadStatus");
 const results = document.getElementById("results");
-const saveStatus = document.getElementById("saveStatus");
 const weightWarning = document.getElementById("weightWarning");
-const savedClasses = document.getElementById("savedClasses");
-const savedClassesBtn = document.getElementById("savedClassesBtn");
-const userBadge = document.getElementById("userBadge");
+
+const profileBtn = document.getElementById("profileBtn");
+const profileBtnName = document.getElementById("profileBtnName");
+const profileMenu = document.getElementById("profileMenu");
+const profileEmail = document.getElementById("profileEmail");
 const logoutBtn = document.getElementById("logoutBtn");
 
 const stageEls = {
@@ -40,13 +36,11 @@ const stageEls = {
   2: document.getElementById("stage2"),
   3: document.getElementById("stage3"),
   4: document.getElementById("stage4"),
-  5: document.getElementById("stage5"),
-  saved: document.getElementById("savedClassesCard")
+  5: document.getElementById("stage5")
 };
 
 let currentUser = null;
 let currentStage = 1;
-let lastCalculatedData = null;
 const googleProvider = new GoogleAuthProvider();
 
 function showOnlyStage(stageKey) {
@@ -57,16 +51,11 @@ function showOnlyStage(stageKey) {
 }
 
 function resetClassFlow() {
-  document.getElementById("courseName").value = "";
-  document.getElementById("professorName").value = "";
   document.getElementById("syllabusFile").value = "";
   document.getElementById("targetGrade").value = "";
   document.getElementById("finalCategoryName").value = "Final Exam";
-
   uploadStatus.textContent = "";
   results.innerHTML = "";
-  saveStatus.textContent = "";
-  lastCalculatedData = null;
 
   categoriesDiv.innerHTML = "";
   addCategoryRow("Homework", 20, "");
@@ -114,42 +103,26 @@ function switchTab(tabName) {
   document.getElementById("loginPanel").classList.toggle("active", tabName === "login");
 }
 
-async function loadSavedClasses() {
-  if (!currentUser) {
-    savedClasses.innerHTML = "<p class='status'>Log in to see saved classes.</p>";
-    return;
+async function loadProfile(user) {
+  let displayName = "Account";
+
+  try {
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    const data = userDoc.exists() ? userDoc.data() : null;
+
+    if (data?.firstName) {
+      displayName = data.firstName;
+    } else if (user.displayName) {
+      displayName = user.displayName.split(" ")[0];
+    } else if (user.email) {
+      displayName = user.email.split("@")[0];
+    }
+  } catch (error) {
+    console.error(error);
   }
 
-  const q = query(
-    collection(db, "classes"),
-    where("userId", "==", currentUser.uid),
-    orderBy("createdAt", "desc")
-  );
-
-  const snapshot = await getDocs(q);
-
-  if (snapshot.empty) {
-    savedClasses.innerHTML = "<p class='status'>No saved classes yet.</p>";
-    return;
-  }
-
-  savedClasses.innerHTML = "";
-
-  snapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    const card = document.createElement("div");
-    card.className = "saved-class";
-
-    card.innerHTML = `
-      <h3>${data.courseName || "Untitled class"}</h3>
-      <p>${data.professorName || "No professor listed"}</p>
-      <p>${data.currentAverage?.toFixed?.(2) ?? "--"}% current average</p>
-      <p>${data.targetGrade ?? "--"}% target</p>
-      <p>${data.neededOnFinal ?? "--"}% needed on final</p>
-    `;
-
-    savedClasses.appendChild(card);
-  });
+  profileBtnName.textContent = displayName;
+  profileEmail.textContent = user.email || "";
 }
 
 document.querySelectorAll(".tab").forEach((button) => {
@@ -162,6 +135,19 @@ document.querySelectorAll(".goal-btn").forEach((button) => {
     button.classList.add("active");
     document.getElementById("targetGrade").value = button.dataset.goal;
   });
+});
+
+profileBtn.addEventListener("click", () => {
+  profileMenu.classList.toggle("hidden");
+});
+
+document.addEventListener("click", (event) => {
+  const clickedInsideProfile =
+    profileBtn.contains(event.target) || profileMenu.contains(event.target);
+
+  if (!clickedInsideProfile) {
+    profileMenu.classList.add("hidden");
+  }
 });
 
 document.getElementById("googleLoginBtn").addEventListener("click", async () => {
@@ -241,15 +227,6 @@ logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
 });
 
-savedClassesBtn.addEventListener("click", async () => {
-  await loadSavedClasses();
-  showOnlyStage("saved");
-});
-
-document.getElementById("backFromSavedBtn").addEventListener("click", () => {
-  showOnlyStage(2);
-});
-
 document.getElementById("mockParseBtn").addEventListener("click", () => {
   categoriesDiv.innerHTML = "";
   addCategoryRow("Homework", 20, "");
@@ -296,8 +273,6 @@ document.getElementById("startAnotherBtn").addEventListener("click", () => {
 
 document.getElementById("uploadBtn").addEventListener("click", async () => {
   const file = document.getElementById("syllabusFile").files[0];
-  const courseNameInput = document.getElementById("courseName");
-  const professorNameInput = document.getElementById("professorName");
   const finalCategoryNameInput = document.getElementById("finalCategoryName");
 
   if (!currentUser) {
@@ -316,7 +291,7 @@ document.getElementById("uploadBtn").addEventListener("click", async () => {
     const path = `syllabi/${currentUser.uid}/${Date.now()}-${file.name}`;
     const fileRef = ref(storage, path);
     await uploadBytes(fileRef, file);
-    const fileUrl = await getDownloadURL(fileRef);
+    await getDownloadURL(fileRef);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -336,14 +311,6 @@ document.getElementById("uploadBtn").addEventListener("click", async () => {
     const data = JSON.parse(raw);
     console.log("AI RESULT:", data);
 
-    if (data.courseName) {
-      courseNameInput.value = data.courseName;
-    }
-
-    if (data.professorName) {
-      professorNameInput.value = data.professorName;
-    }
-
     if (data.finalCategoryName) {
       finalCategoryNameInput.value = data.finalCategoryName;
     }
@@ -355,16 +322,6 @@ document.getElementById("uploadBtn").addEventListener("click", async () => {
       });
       updateWeightWarning();
     }
-
-    await addDoc(collection(db, "uploads"), {
-      userId: currentUser.uid,
-      courseName: courseNameInput.value.trim(),
-      professorName: professorNameInput.value.trim(),
-      fileName: file.name,
-      filePath: path,
-      fileUrl,
-      createdAt: Date.now()
-    });
 
     uploadStatus.textContent = "Syllabus uploaded and parsed by AI.";
     showOnlyStage(3);
@@ -378,8 +335,6 @@ document.getElementById("calcBtn").addEventListener("click", () => {
   const targetGrade = parseFloat(document.getElementById("targetGrade").value);
   const finalCategoryName =
     document.getElementById("finalCategoryName").value.trim().toLowerCase() || "final exam";
-  const courseName = document.getElementById("courseName").value.trim();
-  const professorName = document.getElementById("professorName").value.trim();
   const categories = getCategoryData();
 
   if (!targetGrade) {
@@ -435,67 +390,25 @@ document.getElementById("calcBtn").addEventListener("click", () => {
   }
 
   results.innerHTML = message;
-  saveStatus.textContent = "";
-
-  lastCalculatedData = {
-    courseName,
-    professorName,
-    categories,
-    currentWeightedGrade,
-    currentAverage,
-    targetGrade,
-    neededOnFinal
-  };
-
   showOnlyStage(5);
-});
-
-document.getElementById("saveClassBtn").addEventListener("click", async () => {
-  if (!currentUser) {
-    saveStatus.textContent = "Log in first.";
-    return;
-  }
-
-  if (!lastCalculatedData || !lastCalculatedData.courseName) {
-    saveStatus.textContent = "Calculate a class result first.";
-    return;
-  }
-
-  try {
-    await addDoc(collection(db, "classes"), {
-      userId: currentUser.uid,
-      ...lastCalculatedData,
-      createdAt: Date.now()
-    });
-
-    saveStatus.textContent = "Class saved.";
-    await loadSavedClasses();
-  } catch (error) {
-    console.error(error);
-    saveStatus.textContent = error.message;
-  }
 });
 
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
 
   if (user) {
-    userBadge.textContent = user.email;
-    userBadge.classList.remove("hidden");
-    logoutBtn.classList.remove("hidden");
-    savedClassesBtn.classList.remove("hidden");
+    await loadProfile(user);
+    profileBtn.classList.remove("hidden");
+    profileMenu.classList.add("hidden");
 
     if (currentStage === 1) {
       showOnlyStage(2);
     }
   } else {
-    userBadge.classList.add("hidden");
-    logoutBtn.classList.add("hidden");
-    savedClassesBtn.classList.add("hidden");
+    profileBtn.classList.add("hidden");
+    profileMenu.classList.add("hidden");
     showOnlyStage(1);
   }
-
-  await loadSavedClasses();
 });
 
 categoriesDiv.addEventListener("input", updateWeightWarning);
