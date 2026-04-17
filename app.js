@@ -3,7 +3,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged,
-  signOut
+  signOut,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   doc,
@@ -32,7 +34,28 @@ const userBadge = document.getElementById("userBadge");
 const logoutBtn = document.getElementById("logoutBtn");
 
 let currentUser = null;
+const googleProvider = new GoogleAuthProvider();
+document.getElementById("googleLoginBtn").addEventListener("click", async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
 
+    await setDoc(
+      doc(db, "users", user.uid),
+      {
+        firstName: user.displayName?.split(" ")[0] || "",
+        lastName: user.displayName?.split(" ").slice(1).join(" ") || "",
+        email: user.email || "",
+        createdAt: Date.now()
+      },
+      { merge: true }
+    );
+
+    authStatus.textContent = "Logged in with Google.";
+  } catch (error) {
+    authStatus.textContent = error.message;
+  }
+});
 function addCategoryRow(name = "", weight = "", score = "") {
   const node = categoryTemplate.content.cloneNode(true);
   const row = node.querySelector(".category-row");
