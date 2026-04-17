@@ -84,12 +84,14 @@ async function loadSavedClasses() {
   );
 
   const snapshot = await getDocs(q);
+
   if (snapshot.empty) {
     savedClasses.innerHTML = "<p class='status'>No saved classes yet.</p>";
     return;
   }
 
   savedClasses.innerHTML = "";
+
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
     const card = document.createElement("div");
@@ -135,7 +137,8 @@ document.getElementById("googleLoginBtn").addEventListener("click", async () => 
 
     authStatus.textContent = "Logged in with Google.";
   } catch (error) {
-    authStatus.textContent = error.message;
+    console.error(error);
+    authStatus.textContent = "Google login failed. Check Firebase settings.";
   }
 });
 
@@ -161,21 +164,31 @@ document.getElementById("signupBtn").addEventListener("click", async () => {
   const password = document.getElementById("password").value;
 
   if (!firstName || !lastName || !email || !password) {
-    authStatus.textContent = "Fill in first name, last name, email, and password.";
+    authStatus.textContent = "Fill everything out.";
     return;
   }
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    await setDoc(doc(db, "users", userCredential.user.uid), {
-      firstName,
-      lastName,
-      email,
-      createdAt: Date.now()
-    });
+
+    await setDoc(
+      doc(db, "users", userCredential.user.uid),
+      {
+        firstName,
+        lastName,
+        email,
+        createdAt: Date.now()
+      },
+      { merge: true }
+    );
+
     authStatus.textContent = "Account created.";
   } catch (error) {
-    authStatus.textContent = error.message;
+    if (error.code === "auth/email-already-in-use") {
+      authStatus.textContent = "Account already exists. Try logging in.";
+    } else {
+      authStatus.textContent = error.message;
+    }
   }
 });
 
