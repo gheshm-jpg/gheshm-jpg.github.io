@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GradePath</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>GradePath</h1>
+      <p class="subtitle">Upload your syllabus. Track your grade. See what you need on the final.</p>
+    </div>
+    <div id="userBadge" class="user-badge hidden"></div>
+  </header>
+
+  <main class="container">
+    <section class="card auth-card">
+      <div class="card-header">
+        <h2>Account</h2>
+        <p>Create an account or log in to save your classes.</p>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="signup">Sign up</button>
+        <button class="tab" data-tab="login">Log in</button>
+      </div>
+
+      <div id="signupPanel" class="tab-panel active">
+        <div class="grid-2">
+          <input id="firstName" type="text" placeholder="First name" />
+          <input id="lastName" type="text" placeholder="Last name" />
+        </div>
+        <input id="birthday" type="date" />
+        <input id="email" type="email" placeholder="Email" />
+        <input id="password" type="password" placeholder="Password" />
+        <button id="signupBtn">Create account</button>
+      </div>
+
+      <div id="loginPanel" class="tab-panel">
+        <input id="loginEmail" type="email" placeholder="Email" />
+        <input id="loginPassword" type="password" placeholder="Password" />
+        <button id="loginBtn">Log in</button>
+      </div>
+
+      <p id="authStatus" class="status"></p>
+      <button id="logoutBtn" class="secondary hidden">Log out</button>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Class setup</h2>
+        <p>Add a class, upload a syllabus, then confirm the weights.</p>
+      </div>
+
+      <input id="courseName" type="text" placeholder="Course name (ex. Principles of Economics)" />
+      <input id="professorName" type="text" placeholder="Professor name (optional)" />
+      <input id="syllabusFile" type="file" accept=".pdf,image/*" />
+      <div class="button-row">
+        <button id="uploadBtn">Upload syllabus</button>
+        <button id="mockParseBtn" class="secondary">Fill demo weights</button>
+      </div>
+      <p id="uploadStatus" class="status"></p>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Grade categories</h2>
+        <p>The AI version will suggest these from the syllabus, but you can always edit them manually.</p>
+      </div>
+
+      <div class="category-head row labels">
+        <span>Category</span>
+        <span>Weight %</span>
+        <span>Current %</span>
+        <span></span>
+      </div>
+      <div id="categories"></div>
+      <div class="button-row">
+        <button id="addCategoryBtn" class="secondary">Add category</button>
+      </div>
+      <p id="weightWarning" class="status"></p>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Your goal</h2>
+        <p>Pick a letter grade or enter a custom target.</p>
+      </div>
+
+      <div class="button-row wrap">
+        <button class="goal-btn" data-goal="93">A</button>
+        <button class="goal-btn" data-goal="90">A-</button>
+        <button class="goal-btn" data-goal="87">B+</button>
+        <button class="goal-btn" data-goal="83">B</button>
+      </div>
+
+      <input id="targetGrade" type="number" placeholder="Custom target overall %" />
+      <input id="finalCategoryName" type="text" placeholder="Final category name (default: Final Exam)" value="Final Exam" />
+      <button id="calcBtn">Calculate what you need</button>
+
+      <div id="results" class="results"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Saved classes</h2>
+        <p>This uses Firestore so students can come back later.</p>
+      </div>
+      <div id="savedClasses" class="saved-list"></div>
+    </section>
+  </main>
+
+  <template id="categoryTemplate">
+    <div class="row category-row">
+      <input class="cat-name" type="text" placeholder="Category name" />
+      <input class="cat-weight" type="number" placeholder="Weight" min="0" max="100" />
+      <input class="cat-score" type="number" placeholder="Current" min="0" max="100" />
+      <button class="danger remove-category" type="button">✕</button>
+    </div>
+  </template>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
