@@ -16,6 +16,8 @@
   </header>
 
   <main class="container">
+
+    <!-- AUTH SECTION -->
     <section class="card auth-card">
       <div class="card-header">
         <h2>Account</h2>
@@ -43,72 +45,91 @@
         <button id="loginBtn">Log in</button>
       </div>
 
+      <div class="auth-divider">or</div>
+      <button id="googleLoginBtn" class="secondary" type="button">
+        Continue with Google
+      </button>
+
       <p id="authStatus" class="status"></p>
       <button id="logoutBtn" class="secondary hidden">Log out</button>
     </section>
 
-    <section class="card">
-      <div class="card-header">
-        <h2>Class setup</h2>
-        <p>Add a class, upload a syllabus, then confirm the weights.</p>
-      </div>
+    <!-- APP CONTENT (HIDDEN UNTIL LOGIN) -->
+    <div id="appContent" class="hidden">
 
-      <input id="courseName" type="text" placeholder="Course name (ex. Principles of Economics)" />
-      <input id="professorName" type="text" placeholder="Professor name (optional)" />
-      <input id="syllabusFile" type="file" accept=".pdf,image/*" />
-      <div class="button-row">
-        <button id="uploadBtn">Upload syllabus</button>
-        <button id="mockParseBtn" class="secondary">Fill demo weights</button>
-      </div>
-      <p id="uploadStatus" class="status"></p>
-    </section>
+      <!-- CLASS SETUP -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Class setup</h2>
+          <p>Add a class, upload a syllabus, then confirm the weights.</p>
+        </div>
 
-    <section class="card">
-      <div class="card-header">
-        <h2>Grade categories</h2>
-        <p>The AI version will suggest these from the syllabus, but you can always edit them manually.</p>
-      </div>
+        <input id="courseName" type="text" placeholder="Course name (ex. Principles of Economics)" />
+        <input id="professorName" type="text" placeholder="Professor name (optional)" />
+        <input id="syllabusFile" type="file" accept=".pdf,image/*" />
 
-      <div class="category-head row labels">
-        <span>Category</span>
-        <span>Weight %</span>
-        <span>Current %</span>
-        <span></span>
-      </div>
-      <div id="categories"></div>
-      <div class="button-row">
-        <button id="addCategoryBtn" class="secondary">Add category</button>
-      </div>
-      <p id="weightWarning" class="status"></p>
-    </section>
+        <div class="button-row">
+          <button id="uploadBtn">Upload syllabus</button>
+          <button id="mockParseBtn" class="secondary">Fill demo weights</button>
+        </div>
 
-    <section class="card">
-      <div class="card-header">
-        <h2>Your goal</h2>
-        <p>Pick a letter grade or enter a custom target.</p>
-      </div>
+        <p id="uploadStatus" class="status"></p>
+      </section>
 
-      <div class="button-row wrap">
-        <button class="goal-btn" data-goal="93">A</button>
-        <button class="goal-btn" data-goal="90">A-</button>
-        <button class="goal-btn" data-goal="87">B+</button>
-        <button class="goal-btn" data-goal="83">B</button>
-      </div>
+      <!-- CATEGORIES -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Grade categories</h2>
+          <p>The AI version will suggest these from the syllabus, but you can always edit them manually.</p>
+        </div>
 
-      <input id="targetGrade" type="number" placeholder="Custom target overall %" />
-      <input id="finalCategoryName" type="text" placeholder="Final category name (default: Final Exam)" value="Final Exam" />
-      <button id="calcBtn">Calculate what you need</button>
+        <div class="category-head row labels">
+          <span>Category</span>
+          <span>Weight %</span>
+          <span>Current %</span>
+          <span></span>
+        </div>
 
-      <div id="results" class="results"></div>
-    </section>
+        <div id="categories"></div>
 
-    <section class="card">
-      <div class="card-header">
-        <h2>Saved classes</h2>
-        <p>This uses Firestore so students can come back later.</p>
-      </div>
-      <div id="savedClasses" class="saved-list"></div>
-    </section>
+        <div class="button-row">
+          <button id="addCategoryBtn" class="secondary">Add category</button>
+        </div>
+
+        <p id="weightWarning" class="status"></p>
+      </section>
+
+      <!-- GOAL -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Your goal</h2>
+          <p>Pick a letter grade or enter a custom target.</p>
+        </div>
+
+        <div class="button-row wrap">
+          <button class="goal-btn" data-goal="93">A</button>
+          <button class="goal-btn" data-goal="90">A-</button>
+          <button class="goal-btn" data-goal="87">B+</button>
+          <button class="goal-btn" data-goal="83">B</button>
+        </div>
+
+        <input id="targetGrade" type="number" placeholder="Custom target overall %" />
+        <input id="finalCategoryName" type="text" value="Final Exam" />
+
+        <button id="calcBtn">Calculate what you need</button>
+
+        <div id="results" class="results"></div>
+      </section>
+
+      <!-- SAVED CLASSES -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Saved classes</h2>
+        </div>
+        <div id="savedClasses" class="saved-list"></div>
+      </section>
+
+    </div>
   </main>
 
   <template id="categoryTemplate">
