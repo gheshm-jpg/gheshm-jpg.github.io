@@ -186,9 +186,47 @@ document.getElementById("uploadBtn").addEventListener("click", async () => {
 
   try {
     const path = `syllabi/${currentUser.uid}/${Date.now()}-${file.name}`;
-    const fileRef = ref(storage, path);
-    await uploadBytes(fileRef, file);
-    const fileUrl = await getDownloadURL(fileRef);
+const fileRef = ref(storage, path);
+await uploadBytes(fileRef, file);
+const fileUrl = await getDownloadURL(fileRef);
+
+// send file to AI backend
+const formData = new FormData();
+formData.append("file", file);
+
+const res = await fetch("https://gradepath-parser.onrender.com/analyze-syllabus", {
+  method: "POST",
+  body: formData
+});
+
+if (!res.ok) {
+  throw new Error("AI parser request failed.");
+}
+
+const data = await res.json();
+console.log("AI RESULT:", data);
+
+if (data.courseName) {
+  document.getElementById("courseName").value = data.courseName;
+}
+
+if (data.professorName) {
+  document.getElementById("professorName").value = data.professorName;
+}
+
+if (data.finalCategoryName) {
+  document.getElementById("finalCategoryName").value = data.finalCategoryName;
+}
+
+if (data.categories) {
+  categoriesDiv.innerHTML = "";
+  data.categories.forEach((cat) => {
+    addCategoryRow(cat.name, cat.weight, "");
+  });
+  updateWeightWarning();
+}
+
+uploadStatus.textContent = "Syllabus uploaded + parsed by AI!";
 
     await addDoc(collection(db, "uploads"), {
       userId: currentUser.uid,
