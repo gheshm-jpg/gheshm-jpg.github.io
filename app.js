@@ -32,30 +32,11 @@ const weightWarning = document.getElementById("weightWarning");
 const savedClasses = document.getElementById("savedClasses");
 const userBadge = document.getElementById("userBadge");
 const logoutBtn = document.getElementById("logoutBtn");
+const appContent = document.getElementById("appContent");
 
 let currentUser = null;
 const googleProvider = new GoogleAuthProvider();
-document.getElementById("googleLoginBtn").addEventListener("click", async () => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
 
-    await setDoc(
-      doc(db, "users", user.uid),
-      {
-        firstName: user.displayName?.split(" ")[0] || "",
-        lastName: user.displayName?.split(" ").slice(1).join(" ") || "",
-        email: user.email || "",
-        createdAt: Date.now()
-      },
-      { merge: true }
-    );
-
-    authStatus.textContent = "Logged in with Google.";
-  } catch (error) {
-    authStatus.textContent = error.message;
-  }
-});
 function addCategoryRow(name = "", weight = "", score = "") {
   const node = categoryTemplate.content.cloneNode(true);
   const row = node.querySelector(".category-row");
@@ -116,7 +97,7 @@ async function loadSavedClasses() {
     card.innerHTML = `
       <h3>${data.courseName || "Untitled class"}</h3>
       <p>${data.professorName || "No professor listed"}</p>
-      <p>${data.currentWeightedGrade?.toFixed?.(2) ?? "--"}% current weighted grade</p>
+      <p>${data.currentAverage?.toFixed?.(2) ?? "--"}% current average</p>
       <p>${data.targetGrade ?? "--"}% target</p>
       <p>${data.neededOnFinal ?? "--"}% needed on final</p>
     `;
@@ -136,6 +117,28 @@ document.querySelectorAll(".goal-btn").forEach((button) => {
   });
 });
 
+document.getElementById("googleLoginBtn").addEventListener("click", async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+
+    await setDoc(
+      doc(db, "users", user.uid),
+      {
+        firstName: user.displayName?.split(" ")[0] || "",
+        lastName: user.displayName?.split(" ").slice(1).join(" ") || "",
+        email: user.email || "",
+        createdAt: Date.now()
+      },
+      { merge: true }
+    );
+
+    authStatus.textContent = "Logged in with Google.";
+  } catch (error) {
+    authStatus.textContent = error.message;
+  }
+});
+
 document.getElementById("addCategoryBtn").addEventListener("click", () => {
   addCategoryRow();
 });
@@ -148,7 +151,7 @@ document.getElementById("mockParseBtn").addEventListener("click", () => {
   addCategoryRow("Participation", 10, "");
   addCategoryRow("Final Exam", 30, "");
   updateWeightWarning();
-  uploadStatus.textContent = "Demo weights added. Later, your AI parser will fill this in from the syllabus.";
+  uploadStatus.textContent = "Demo weights added.";
 });
 
 document.getElementById("signupBtn").addEventListener("click", async () => {
@@ -167,7 +170,6 @@ document.getElementById("signupBtn").addEventListener("click", async () => {
     await setDoc(doc(db, "users", userCredential.user.uid), {
       firstName,
       lastName,
-      birthday,
       email,
       createdAt: Date.now()
     });
@@ -180,6 +182,7 @@ document.getElementById("signupBtn").addEventListener("click", async () => {
 document.getElementById("loginBtn").addEventListener("click", async () => {
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value;
+
   try {
     await signInWithEmailAndPassword(auth, email, password);
     authStatus.textContent = "Logged in.";
@@ -194,81 +197,87 @@ logoutBtn.addEventListener("click", async () => {
 
 document.getElementById("uploadBtn").addEventListener("click", async () => {
   const file = document.getElementById("syllabusFile").files[0];
-  const courseName = document.getElementById("courseName").value.trim();
-  const professorName = document.getElementById("professorName").value.trim();
+  const courseNameInput = document.getElementById("courseName");
+  const professorNameInput = document.getElementById("professorName");
+  const finalCategoryNameInput = document.getElementById("finalCategoryName");
 
   if (!currentUser) {
     uploadStatus.textContent = "Log in first.";
     return;
   }
+
   if (!file) {
     uploadStatus.textContent = "Choose a syllabus file first.";
     return;
   }
 
   try {
+    uploadStatus.textContent = "Uploading and analyzing syllabus...";
+
     const path = `syllabi/${currentUser.uid}/${Date.now()}-${file.name}`;
-const fileRef = ref(storage, path);
-await uploadBytes(fileRef, file);
-const fileUrl = await getDownloadURL(fileRef);
+    const fileRef = ref(storage, path);
+    await uploadBytes(fileRef, file);
+    const fileUrl = await getDownloadURL(fileRef);
 
-// send file to AI backend
-const formData = new FormData();
-formData.append("file", file);
+    const formData = new FormData();
+    formData.append("file", file);
 
-const res = await fetch("https://gradepath-parser.onrender.com/analyze-syllabus", {
-  method: "POST",
-  body: formData
-});
+    const res = await fetch("https://gradepath-parser.onrender.com/analyze-syllabus", {
+      method: "POST",
+      body: formData
+    });
 
-if (!res.ok) {
-  throw new Error("AI parser request failed.");
-}
+    const raw = await res.text();
+    console.log("RAW AI RESPONSE:", raw);
 
-const data = await res.json();
-console.log("AI RESULT:", data);
+    if (!res.ok) {
+      throw new Error(raw || "AI parser request failed.");
+    }
 
-if (data.courseName) {
-  document.getElementById("courseName").value = data.courseName;
-}
+    const data = JSON.parse(raw);
+    console.log("AI RESULT:", data);
 
-if (data.professorName) {
-  document.getElementById("professorName").value = data.professorName;
-}
+    if (data.courseName) {
+      courseNameInput.value = data.courseName;
+    }
 
-if (data.finalCategoryName) {
-  document.getElementById("finalCategoryName").value = data.finalCategoryName;
-}
+    if (data.professorName) {
+      professorNameInput.value = data.professorName;
+    }
 
-if (data.categories) {
-  categoriesDiv.innerHTML = "";
-  data.categories.forEach((cat) => {
-    addCategoryRow(cat.name, cat.weight, "");
-  });
-  updateWeightWarning();
-}
+    if (data.finalCategoryName) {
+      finalCategoryNameInput.value = data.finalCategoryName;
+    }
 
-uploadStatus.textContent = "Syllabus uploaded + parsed by AI!";
+    if (Array.isArray(data.categories) && data.categories.length > 0) {
+      categoriesDiv.innerHTML = "";
+      data.categories.forEach((cat) => {
+        addCategoryRow(cat.name || "", cat.weight || "", "");
+      });
+      updateWeightWarning();
+    }
 
     await addDoc(collection(db, "uploads"), {
       userId: currentUser.uid,
-      courseName,
-      professorName,
+      courseName: courseNameInput.value.trim(),
+      professorName: professorNameInput.value.trim(),
       fileName: file.name,
       filePath: path,
       fileUrl,
       createdAt: Date.now()
     });
 
-    uploadStatus.textContent = "Syllabus uploaded. Next version: send this file to your AI parser and autofill the categories.";
+    uploadStatus.textContent = "Syllabus uploaded and parsed by AI.";
   } catch (error) {
+    console.error(error);
     uploadStatus.textContent = error.message;
   }
 });
 
 document.getElementById("calcBtn").addEventListener("click", async () => {
   const targetGrade = parseFloat(document.getElementById("targetGrade").value);
-  const finalCategoryName = document.getElementById("finalCategoryName").value.trim().toLowerCase() || "final exam";
+  const finalCategoryName =
+    document.getElementById("finalCategoryName").value.trim().toLowerCase() || "final exam";
   const courseName = document.getElementById("courseName").value.trim();
   const professorName = document.getElementById("professorName").value.trim();
   const categories = getCategoryData();
@@ -284,34 +293,40 @@ document.getElementById("calcBtn").addEventListener("click", async () => {
     return;
   }
 
-  const finalCategory = categories.find((item) => item.name.trim().toLowerCase() === finalCategoryName);
+  const finalCategory = categories.find(
+    (item) => item.name.trim().toLowerCase() === finalCategoryName
+  );
+
   if (!finalCategory) {
-    results.innerHTML = `<p>Could not find a category named “${document.getElementById("finalCategoryName").value || "Final Exam"}”. Make sure one category matches that exact name.</p>`;
+    results.innerHTML = `<p>Could not find a category named “${
+      document.getElementById("finalCategoryName").value || "Final Exam"
+    }”. Make sure one category matches that exact name.</p>`;
     return;
   }
 
   const nonFinalCategories = categories.filter((item) => item !== finalCategory);
-  const currentWeightedGrade = nonFinalCategories.reduce((sum, item) => sum + (item.weight * item.score) / 100, 0);
+
+  const currentWeightedGrade = nonFinalCategories.reduce(
+    (sum, item) => sum + (item.weight * item.score) / 100,
+    0
+  );
+
+  const completedWeight = nonFinalCategories.reduce((sum, item) => sum + item.weight, 0);
+
+  const currentAverage =
+    completedWeight === 0 ? 0 : (currentWeightedGrade / completedWeight) * 100;
+
   const neededOnFinal = ((targetGrade - currentWeightedGrade) / finalCategory.weight) * 100;
-  const completedWeight = nonFinalCategories.reduce(
-  (sum, item) => sum + item.weight,
-  0
-);
 
-const currentAverage =
-  completedWeight === 0
-    ? 0
-    : (currentWeightedGrade / completedWeight) * 100;
-
-let message = `
-  <p><strong>Current average (based on completed work):</strong> ${currentAverage.toFixed(2)}%</p>
-  <p><strong>Progress toward final course grade:</strong> ${currentWeightedGrade.toFixed(2)} / 100</p>
-  <p><strong>Target overall grade:</strong> ${targetGrade.toFixed(2)}%</p>
-  <p><strong>Needed on ${finalCategory.name}:</strong> ${neededOnFinal.toFixed(2)}%</p>
-`;
+  let message = `
+    <p><strong>Current average (based on completed work):</strong> ${currentAverage.toFixed(2)}%</p>
+    <p><strong>Progress toward final course grade:</strong> ${currentWeightedGrade.toFixed(2)} / 100</p>
+    <p><strong>Target overall grade:</strong> ${targetGrade.toFixed(2)}%</p>
+    <p><strong>Needed on ${finalCategory.name}:</strong> ${neededOnFinal.toFixed(2)}%</p>
+  `;
 
   if (neededOnFinal > 100) {
-    message += `<p>This target is not reachable with the scores entered so far unless your grading setup changes or some categories improve.</p>`;
+    message += `<p>This target is not reachable with the scores entered so far unless some other grades improve.</p>`;
   } else if (neededOnFinal < 0) {
     message += `<p>You are already above this target based on the numbers entered so far.</p>`;
   } else {
@@ -327,6 +342,7 @@ let message = `
       professorName,
       categories,
       currentWeightedGrade,
+      currentAverage,
       targetGrade,
       neededOnFinal,
       createdAt: Date.now()
@@ -337,15 +353,20 @@ let message = `
 
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
+
   if (user) {
     userBadge.textContent = user.email;
     userBadge.classList.remove("hidden");
     logoutBtn.classList.remove("hidden");
+    appContent.classList.remove("hidden");
     authStatus.textContent = "";
   } else {
     userBadge.classList.add("hidden");
     logoutBtn.classList.add("hidden");
+    appContent.classList.add("hidden");
+    authStatus.textContent = "";
   }
+
   await loadSavedClasses();
 });
 
