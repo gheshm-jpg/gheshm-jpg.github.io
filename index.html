@@ -16,12 +16,11 @@
   </header>
 
   <main class="container">
-
-    <!-- AUTH SECTION -->
-    <section class="card auth-card">
+    <!-- STAGE 1: AUTH -->
+    <section id="stage1" class="card stage">
       <div class="card-header">
-        <h2>Account</h2>
-        <p>Create an account or log in to save your classes.</p>
+        <h2>Welcome</h2>
+        <p>Create an account or log in to start.</p>
       </div>
 
       <div class="tabs">
@@ -46,90 +45,97 @@
       </div>
 
       <div class="auth-divider">or</div>
-      <button id="googleLoginBtn" class="secondary" type="button">
-        Continue with Google
-      </button>
+      <button id="googleLoginBtn" class="secondary" type="button">Continue with Google</button>
 
       <p id="authStatus" class="status"></p>
-      <button id="logoutBtn" class="secondary hidden">Log out</button>
+      <button id="logoutBtn" class="secondary hidden" type="button">Log out</button>
     </section>
 
-    <!-- APP CONTENT (HIDDEN UNTIL LOGIN) -->
-    <div id="appContent" class="hidden">
+    <!-- STAGE 2: UPLOAD -->
+    <section id="stage2" class="card stage hidden">
+      <div class="card-header">
+        <h2>Upload your syllabus</h2>
+        <p>Start by uploading a syllabus image or PDF.</p>
+      </div>
 
-      <!-- CLASS SETUP -->
-      <section class="card">
-        <div class="card-header">
-          <h2>Class setup</h2>
-          <p>Add a class, upload a syllabus, then confirm the weights.</p>
-        </div>
+      <input id="courseName" type="text" placeholder="Course name (optional if AI finds it)" />
+      <input id="professorName" type="text" placeholder="Professor name (optional if AI finds it)" />
+      <input id="syllabusFile" type="file" accept=".pdf,image/*" />
 
-        <input id="courseName" type="text" placeholder="Course name (ex. Principles of Economics)" />
-        <input id="professorName" type="text" placeholder="Professor name (optional)" />
-        <input id="syllabusFile" type="file" accept=".pdf,image/*" />
+      <div class="button-row">
+        <button id="uploadBtn" type="button">Upload and analyze</button>
+        <button id="mockParseBtn" class="secondary" type="button">Use demo weights</button>
+      </div>
 
-        <div class="button-row">
-          <button id="uploadBtn">Upload syllabus</button>
-          <button id="mockParseBtn" class="secondary">Fill demo weights</button>
-        </div>
+      <p id="uploadStatus" class="status"></p>
+    </section>
 
-        <p id="uploadStatus" class="status"></p>
-      </section>
+    <!-- STAGE 3: REVIEW WEIGHTS -->
+    <section id="stage3" class="card stage hidden">
+      <div class="card-header">
+        <h2>Review the grading weights</h2>
+        <p>Edit anything the AI got wrong, then continue.</p>
+      </div>
 
-      <!-- CATEGORIES -->
-      <section class="card">
-        <div class="card-header">
-          <h2>Grade categories</h2>
-          <p>The AI version will suggest these from the syllabus, but you can always edit them manually.</p>
-        </div>
+      <div class="category-head row labels">
+        <span>Category</span>
+        <span>Weight %</span>
+        <span>Current %</span>
+        <span></span>
+      </div>
 
-        <div class="category-head row labels">
-          <span>Category</span>
-          <span>Weight %</span>
-          <span>Current %</span>
-          <span></span>
-        </div>
+      <div id="categories"></div>
 
-        <div id="categories"></div>
+      <div class="button-row">
+        <button id="addCategoryBtn" class="secondary" type="button">Add category</button>
+        <button id="continueToGoalsBtn" type="button">Continue</button>
+      </div>
 
-        <div class="button-row">
-          <button id="addCategoryBtn" class="secondary">Add category</button>
-        </div>
+      <p id="weightWarning" class="status"></p>
+    </section>
 
-        <p id="weightWarning" class="status"></p>
-      </section>
+    <!-- STAGE 4: SCORES + GOAL -->
+    <section id="stage4" class="card stage hidden">
+      <div class="card-header">
+        <h2>Enter your scores and your goal</h2>
+        <p>Fill in your current percentages, choose your target, then calculate.</p>
+      </div>
 
-      <!-- GOAL -->
-      <section class="card">
-        <div class="card-header">
-          <h2>Your goal</h2>
-          <p>Pick a letter grade or enter a custom target.</p>
-        </div>
+      <input id="finalCategoryName" type="text" value="Final Exam" placeholder="Final category name" />
 
-        <div class="button-row wrap">
-          <button class="goal-btn" data-goal="93">A</button>
-          <button class="goal-btn" data-goal="90">A-</button>
-          <button class="goal-btn" data-goal="87">B+</button>
-          <button class="goal-btn" data-goal="83">B</button>
-        </div>
+      <div class="button-row wrap">
+        <button class="goal-btn" data-goal="93" type="button">A</button>
+        <button class="goal-btn" data-goal="90" type="button">A-</button>
+        <button class="goal-btn" data-goal="87" type="button">B+</button>
+        <button class="goal-btn" data-goal="83" type="button">B</button>
+      </div>
 
-        <input id="targetGrade" type="number" placeholder="Custom target overall %" />
-        <input id="finalCategoryName" type="text" value="Final Exam" />
+      <input id="targetGrade" type="number" placeholder="Custom target overall %" />
+      <button id="calcBtn" type="button">Calculate what you need</button>
+    </section>
 
-        <button id="calcBtn">Calculate what you need</button>
+    <!-- STAGE 5: RESULT -->
+    <section id="stage5" class="card stage hidden">
+      <div class="card-header">
+        <h2>Your result</h2>
+        <p>Here’s where you stand and what you need.</p>
+      </div>
 
-        <div id="results" class="results"></div>
-      </section>
+      <div id="results" class="results"></div>
 
-      <!-- SAVED CLASSES -->
-      <section class="card">
-        <div class="card-header">
-          <h2>Saved classes</h2>
-        </div>
-        <div id="savedClasses" class="saved-list"></div>
-      </section>
+      <div class="button-row">
+        <button id="backToGoalsBtn" class="secondary" type="button">Back</button>
+        <button id="startAnotherBtn" type="button">Start another class</button>
+      </div>
+    </section>
 
-    </div>
+    <!-- SAVED CLASSES -->
+    <section id="savedClassesCard" class="card hidden">
+      <div class="card-header">
+        <h2>Saved classes</h2>
+      </div>
+      <div id="savedClasses" class="saved-list"></div>
+    </section>
   </main>
 
   <template id="categoryTemplate">
