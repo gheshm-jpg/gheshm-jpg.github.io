@@ -163,7 +163,16 @@ button:hover {
 .category-row input {
   margin-bottom: 0;
 }
+.hidden {
+  display: none;
+}
 
+.auth-divider {
+  text-align: center;
+  margin: 12px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
 .status {
   min-height: 20px;
   margin: 10px 0 0;
