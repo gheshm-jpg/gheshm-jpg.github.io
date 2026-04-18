@@ -14,8 +14,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   ref,
-  uploadBytes,
-  getDownloadURL
+  uploadBytes
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const categoryTemplate = document.getElementById("categoryTemplate");
@@ -70,8 +69,8 @@ function addCategoryRow(name = "", weight = "", score = "") {
   const row = node.querySelector(".category-row");
 
   row.querySelector(".cat-name").value = name;
-  row.querySelector(".cat-weight").value = weight;
-  row.querySelector(".cat-score").value = score;
+  row.querySelector(".cat-weight input").value = weight;
+  row.querySelector(".cat-score input").value = score;
 
   row.querySelector(".remove-category").addEventListener("click", () => {
     row.remove();
@@ -84,8 +83,8 @@ function addCategoryRow(name = "", weight = "", score = "") {
 function getCategoryData() {
   return [...document.querySelectorAll(".category-row")].map((row) => ({
     name: row.querySelector(".cat-name").value.trim(),
-    weight: parseFloat(row.querySelector(".cat-weight").value) || 0,
-    score: parseFloat(row.querySelector(".cat-score").value) || 0
+    weight: parseFloat(row.querySelector(".cat-weight input").value) || 0,
+    score: parseFloat(row.querySelector(".cat-score input").value) || 0
   }));
 }
 
@@ -291,7 +290,6 @@ document.getElementById("uploadBtn").addEventListener("click", async () => {
     const path = `syllabi/${currentUser.uid}/${Date.now()}-${file.name}`;
     const fileRef = ref(storage, path);
     await uploadBytes(fileRef, file);
-    await getDownloadURL(fileRef);
 
     const formData = new FormData();
     formData.append("file", file);
