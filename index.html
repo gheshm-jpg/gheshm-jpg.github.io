@@ -26,7 +26,6 @@
   </header>
 
   <main class="container">
-    <!-- STAGE 1 -->
     <section id="stage1" class="card stage">
       <div class="card-header">
         <h2>Welcome</h2>
@@ -71,7 +70,6 @@
       <p id="authStatus" class="status"></p>
     </section>
 
-    <!-- STAGE 2 -->
     <section id="stage2" class="card stage hidden">
       <div class="card-header">
         <h2>Step 1: Upload your syllabus</h2>
@@ -88,7 +86,6 @@
       <p id="uploadStatus" class="status"></p>
     </section>
 
-    <!-- STAGE 3 -->
     <section id="stage3" class="card stage hidden">
       <div class="card-header">
         <h2>Step 2: Review the grading weights</h2>
@@ -113,7 +110,6 @@
       <p id="weightWarning" class="status"></p>
     </section>
 
-    <!-- STAGE 4 -->
     <section id="stage4" class="card stage hidden">
       <div class="card-header">
         <h2>Step 3: Enter your scores and choose your goal</h2>
@@ -129,7 +125,7 @@
         <button class="goal-btn" data-goal="83" type="button">B</button>
       </div>
 
-      <input id="targetGrade" type="number" placeholder="Custom target overall %" />
+      <input id="targetGrade" type="number" placeholder="Custom target overall %" inputmode="decimal" />
 
       <div class="button-row">
         <button id="backToWeightsBtn" class="secondary" type="button">Back</button>
@@ -137,7 +133,6 @@
       </div>
     </section>
 
-    <!-- STAGE 5 -->
     <section id="stage5" class="card stage hidden">
       <div class="card-header">
         <h2>Your result</h2>
@@ -156,8 +151,14 @@
   <template id="categoryTemplate">
     <div class="row category-row">
       <input class="cat-name" type="text" placeholder="Category name" />
-      <input class="cat-weight" type="number" placeholder="Weight" min="0" max="100" />
-      <input class="cat-score" type="number" placeholder="Current" min="0" max="100" />
+      <div class="input-with-suffix cat-weight">
+        <input type="number" placeholder="Weight %" min="0" max="100" inputmode="decimal" />
+        <span>%</span>
+      </div>
+      <div class="input-with-suffix cat-score">
+        <input type="number" placeholder="Enter %" min="0" max="100" inputmode="decimal" />
+        <span>%</span>
+      </div>
       <button class="danger remove-category" type="button">✕</button>
     </div>
   </template>
