@@ -89,13 +89,13 @@
     <section id="stage3" class="card stage hidden">
       <div class="card-header">
         <h2>Step 2: Review the grading weights</h2>
-        <p>Edit anything the AI got wrong, then continue.</p>
+        <p>Edit the category names, the weight for each category, and the current percent you have so far.</p>
       </div>
 
       <div class="category-head row labels">
         <span>Category</span>
-        <span>Weight %</span>
-        <span>Current %</span>
+        <span>Weight</span>
+        <span>Current grade</span>
         <span></span>
       </div>
 
@@ -112,8 +112,8 @@
 
     <section id="stage4" class="card stage hidden">
       <div class="card-header">
-        <h2>Step 3: Enter your scores and choose your goal</h2>
-        <p>Fill in your current category percentages, then choose the grade you want.</p>
+        <h2>Step 3: Enter your goal</h2>
+        <p>Choose the grade you want and calculate what you need on the final.</p>
       </div>
 
       <input id="finalCategoryName" type="text" value="Final Exam" placeholder="Final category name" />
@@ -125,7 +125,7 @@
         <button class="goal-btn" data-goal="83" type="button">B</button>
       </div>
 
-      <input id="targetGrade" type="number" placeholder="Custom target overall %" inputmode="decimal" />
+      <input id="targetGrade" type="number" placeholder="Custom target overall grade" inputmode="decimal" />
 
       <div class="button-row">
         <button id="backToWeightsBtn" class="secondary" type="button">Back</button>
@@ -151,14 +151,8 @@
   <template id="categoryTemplate">
     <div class="row category-row">
       <input class="cat-name" type="text" placeholder="Category name" />
-      <div class="input-with-suffix cat-weight">
-        <input type="number" placeholder="Weight %" min="0" max="100" inputmode="decimal" />
-        <span>%</span>
-      </div>
-      <div class="input-with-suffix cat-score">
-        <input type="number" placeholder="Enter %" min="0" max="100" inputmode="decimal" />
-        <span>%</span>
-      </div>
+      <input class="cat-weight" type="number" placeholder="Weight (0-100)" min="0" max="100" inputmode="decimal" />
+      <input class="cat-score" type="number" placeholder="Current percent (0-100)" min="0" max="100" inputmode="decimal" />
       <button class="danger remove-category" type="button">✕</button>
     </div>
   </template>
